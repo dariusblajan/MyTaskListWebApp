@@ -18,12 +18,12 @@ public class MyListOfToDoMock {
 
     private static MyListOfToDoMock m;
 
-    public static MyListOfToDoMock getInstance() throws SQLException, ClassNotFoundException {
+    public static MyListOfToDoMock getInstance(int userid) throws SQLException, ClassNotFoundException {
         System.out.println("get instance...");
         System.out.println("m=null "+ m==null);
        // if(m==null) {
             m=new MyListOfToDoMock();
-            m.generateInitialList();
+            m.generateInitialList(userid);
         //}
        return m;
     }
@@ -32,26 +32,15 @@ public class MyListOfToDoMock {
     private List<ToDoBean> toDoList = new ArrayList<ToDoBean>();
     private int id;
 
-    private void generateInitialList() throws SQLException, ClassNotFoundException {
+    private void generateInitialList(int userid) throws SQLException, ClassNotFoundException {
         System.out.println("Initializing...");
-        ListCRUDOperations list = new ListCRUDOperations();
-        String[] s = new String[20];
-        s = list.demoRead();
-        System.out.println("s is null = "+s==null);
-        int i = 0;
-        while (s[i]!=null){
-            System.out.println("item to be loaded: "+s[i]);
-            toDoList.add(new ToDoBean(i, s[i]));
-            i++;
-        }
-        id=i;
+        toDoList = ListCRUDOperations.demoRead(userid);
     };
 
-   public void addItem(String value) throws SQLException, ClassNotFoundException {
-      id++;
-       toDoList.add(new ToDoBean(id,value));
+   public void addItem(String value, int userid) throws SQLException, ClassNotFoundException {
+       toDoList.add(new ToDoBean(value,false, userid));
        ListCRUDOperations list = new ListCRUDOperations();
-       list.demoCreate(value);
+       list.demoCreate(value, userid);
         }
 
     public void doneItem(int index) {
@@ -76,8 +65,8 @@ public class MyListOfToDoMock {
         }
     }
 
-    public List getList() {
-        return toDoList;
+    public List getList(int userid) throws SQLException, ClassNotFoundException {
+        return ListCRUDOperations.demoRead(userid);
     }
 
 }

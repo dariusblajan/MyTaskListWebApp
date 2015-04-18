@@ -51,7 +51,6 @@ public class UserServlet extends HttpServlet {
             System.out.println("enter pe create user");
             userBean=ListCRUDOperations.createUser(name);
         }
-        session.setAttribute(USER, userBean);
-
+        session.setAttribute(USER, userBean);//saving user onto session
     }
 }

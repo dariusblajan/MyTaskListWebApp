@@ -1,9 +1,22 @@
 package org.fasttrackit.dev.todolist;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class ListCRUDOperations {
+    private static Connection getConnection() throws ClassNotFoundException, SQLException {
+        // 1. load driver
+        Class.forName("org.postgresql.Driver");
+
+        // 2. define connection params to db
+        final String URL = "jdbc:postgresql://54.93.65.5:5432/dariusList";
+        final String USERNAME = "fasttrackit_dev";
+        final String PASSWORD = "fasttrackit_dev";
+
+        // 3. obtain a connection
+        return DriverManager.getConnection(URL, USERNAME, PASSWORD);
+    }
 
     /*public static void printMenu(){
         System.out.println("1.read");
@@ -53,25 +66,18 @@ public class ListCRUDOperations {
         }
     }*/
 
-    public static void demoCreate(String item) throws ClassNotFoundException, SQLException {
-
-        // 1. load driver
-        Class.forName("org.postgresql.Driver");
-
-        // 2. define connection params to db
-        final String URL = "jdbc:postgresql://54.93.65.5:5432/dariusList";
-        final String USERNAME = "fasttrackit_dev";
-        final String PASSWORD = "fasttrackit_dev";
+    public static void demoCreate(String item, int userid) throws ClassNotFoundException, SQLException {
 
         // 3. obtain a connection
-        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        Connection conn = getConnection();
 
         // 4. create a query statement
-        PreparedStatement pSt = conn.prepareStatement("INSERT INTO \"ToDoList\" (item) VALUES (?)");
+        PreparedStatement pSt = conn.prepareStatement("INSERT INTO \"ToDoList\" (item,user_id) VALUES (?,?)");
         pSt.setString(1, item);
+        pSt.setInt(2, userid);
 
         // 5. execute a prepared statement
-        int rowsInserted = pSt.executeUpdate();
+        pSt.executeUpdate();
 
         // 6. close the objects
         pSt.close();
@@ -80,16 +86,8 @@ public class ListCRUDOperations {
 
     public static UserBean demoReadUser(String userName ) throws ClassNotFoundException, SQLException {
 
-        // 1. load driver
-        Class.forName("org.postgresql.Driver");
-
-        // 2. define connection params to db
-        final String URL = "jdbc:postgresql://54.93.65.5:5432/dariusList";
-        final String USERNAME = "fasttrackit_dev";
-        final String PASSWORD = "fasttrackit_dev";
-
         // 3. obtain a connection
-        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        Connection conn = getConnection();
 
         // 4. create a query statement
         Statement st = conn.createStatement();
@@ -111,38 +109,27 @@ public class ListCRUDOperations {
         return null;
     }
 
-    public static String[] demoRead() throws ClassNotFoundException, SQLException {
-
-        // 1. load driver
-        Class.forName("org.postgresql.Driver");
-
-        // 2. define connection params to db
-        final String URL = "jdbc:postgresql://54.93.65.5:5432/dariusList";
-        final String USERNAME = "fasttrackit_dev";
-        final String PASSWORD = "fasttrackit_dev";
+    public static ArrayList<ToDoBean> demoRead(int userid) throws ClassNotFoundException, SQLException {
 
         // 3. obtain a connection
-        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        Connection conn = getConnection();
 
         // 4. create a query statement
         Statement st = conn.createStatement();
 
         // 5. execute a query
-        ResultSet rs = st.executeQuery("SELECT item, \"isDone\" FROM \"ToDoList\" where \"isDone\"=false");
+        PreparedStatement pSt = conn.prepareStatement("SELECT item, \"isDone\", item_id FROM \"ToDoList\" where \"isDone\"=false and user_id=?");
+        pSt.setInt(1, userid);
+        ResultSet rs = pSt.executeQuery();
 
         // 6. iterate the result set and collecting values
-        String[] result = new String[20];
-        int i=0;
-        boolean isDone;
-        String value;
+        ArrayList<ToDoBean> result = new ArrayList();
         while (rs.next()) {
-            //isDone=rs.getBoolean("isDone");
-            value=rs.getString("item").trim();
-            //System.out.println(value + " = " + isDone);
-            //if (!isDone) {
-                result[i]=value;
-                i++;
-            //}
+            boolean isDone = rs.getBoolean("isDone");
+            String value = rs.getString("item").trim();
+            int id = rs.getInt("item_id");
+            ToDoBean bean = new ToDoBean(id, value, isDone, userid);
+            result.add(bean);
         }
         System.out.println("am iesit din while, result construction ended");
 
@@ -218,8 +205,7 @@ public class ListCRUDOperations {
         conn.close();
     }*/
 
-    public static void demoSetDone(String task) throws ClassNotFoundException, SQLException {
-        System.out.println("task to be set as DONE: "+ task);
+    public static void demoSetDone(int taskid, int userid) throws ClassNotFoundException, SQLException {
 
         // 1. load driver
         Class.forName("org.postgresql.Driver");
@@ -233,13 +219,14 @@ public class ListCRUDOperations {
         Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
 
         // 4. create a query statement
-        PreparedStatement pSt = conn.prepareStatement("UPDATE \"ToDoList\" SET \"isDone\"=? WHERE item=?");
+        PreparedStatement pSt = conn.prepareStatement("UPDATE \"ToDoList\" SET \"isDone\"=? WHERE item_id=? and user_id=?");
         pSt.setBoolean(1, true);
-        pSt.setString(2, task);
+        pSt.setInt(2, taskid);
+        pSt.setInt(3, userid);
 
         // 5. execute a prepared statement
         int rowsDeleted = pSt.executeUpdate();
-        System.out.println(task + " set to: DONE");
+        System.out.println(taskid + " set to: DONE");
 
         // 6. close the objects
         pSt.close();

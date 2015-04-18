@@ -4,6 +4,7 @@ package org.fasttrackit.dev.todolist.servlet;
 import org.fasttrackit.dev.todolist.ListCRUDOperations;
 import org.fasttrackit.dev.todolist.MyListOfToDoMock;
 import org.fasttrackit.dev.todolist.ToDoBean;
+import org.fasttrackit.dev.todolist.UserBean;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
@@ -52,8 +53,6 @@ public class ToDoListServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-        HttpSession session = request.getSession(true);
-        session.getAttribute(UserServlet.USER);
 
         String action = request.getParameter(ACTION);
         if (action != null && action.equals(LIST_ACTION)) {
@@ -83,16 +82,19 @@ public class ToDoListServlet extends HttpServlet {
         }
     }
 
+    private int getUserIdFomSession(HttpServletRequest request) {
+        HttpSession session = request.getSession(true);
+        UserBean userBean = (UserBean) session.getAttribute(UserServlet.USER);
+
+        return userBean.getId();
+    }
     private void listAction(HttpServletRequest request, HttpServletResponse response) throws SQLException, ClassNotFoundException {
 
         System.out.println("list action");
-        HttpSession session = request.getSession(true);
 
-        // call db
+        int userid = getUserIdFomSession(request);
 
-        MyListOfToDoMock myListObject = MyListOfToDoMock.getInstance();
-        //myListObject.printList();
-        List<ToDoBean> l = myListObject.getList();
+        List<ToDoBean> l = ListCRUDOperations.demoRead(userid);
 
         // put the list in a json
         JsonObjectBuilder jObjBuilder = Json.createObjectBuilder();
@@ -124,31 +126,15 @@ public class ToDoListServlet extends HttpServlet {
 
         System.out.println("enter pe done");
 
-        HttpSession session = request.getSession(true);
-
         String idS = request.getParameter(ID_TASK);
         int id = Integer.parseInt(idS);
-        MyListOfToDoMock myListObject = MyListOfToDoMock.getInstance();
-
-        myListObject.printList();
-
-
-        List<ToDoBean> l = myListObject.getList();
-        for (ListIterator<ToDoBean> iterator = l.listIterator(); iterator.hasNext(); ) {
-            ToDoBean element = iterator.next();
-            ListCRUDOperations list =new ListCRUDOperations();
-            if (element.getId() == id) {
-                System.out.println("found it, now canceling");
-                element.setDone(true);
-                iterator.set(element);
-                try {
-                    list.demoSetDone(element.getWhatToDo());
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
+        int userid = getUserIdFomSession(request);
+        try {
+            ListCRUDOperations.demoSetDone(id, userid);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         System.out.println("i am done");
@@ -158,15 +144,11 @@ public class ToDoListServlet extends HttpServlet {
 
         System.out.println("add action");
 
-        HttpSession session = request.getSession(true);
-
         String value = request.getParameter(VALUE_NEWTASK);
 
+        int userid = getUserIdFomSession(request);
 
-        MyListOfToDoMock myListObject = MyListOfToDoMock.getInstance();
-        myListObject.printList();
-
-        myListObject.addItem(value);
+        ListCRUDOperations.demoCreate(value, userid);
 
         System.out.println("now I am done");
 

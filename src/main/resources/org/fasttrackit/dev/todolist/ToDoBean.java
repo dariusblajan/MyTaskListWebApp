@@ -6,10 +6,25 @@ package org.fasttrackit.dev.todolist;
  */
 public class ToDoBean {
 
-    ToDoBean(int id, String value) {
+    public int getUserid() {
+        return userid;
+    }
+
+    public void setUserid(int userid) {
+        this.userid = userid;
+    }
+    ToDoBean(String value, boolean isDone, int userid) {
+        this.whatToDo=value;
+        this.isDone=isDone;
+        this.userid=userid;
+    }
+
+    ToDoBean(int id, String value, boolean isDone, int userid) {
         this.id=id;
         this.whatToDo=value;
-        isDone=false;
+        this.isDone=isDone;
+        this.userid=userid;
+
     }
 
     public int getId() {
@@ -37,5 +52,6 @@ public class ToDoBean {
     private int id;
     private String whatToDo;
     private boolean isDone;
+    private int userid;
 
 }
